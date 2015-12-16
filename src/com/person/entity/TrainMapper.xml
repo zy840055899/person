@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.TrainDao">
+	
+	<!-- 结果类型必须是查询所得的每一条数据的类型，而不是全部 -->
+ 	<select id="findAllTrain" parameterType="com.person.entity.page.TrainPage" resultType="com.person.entity.Train">
+ 		SELECT * FROM train 
+ 		LIMIT #{begin},#{size}
+ 	</select>
+ 	
+ 	<select id="findTrainById" resultType="com.person.entity.Train">
+ 		SELECT * FROM train WHERE trainId=#{trainId}
+ 	</select>
+ 	
+ 	<select id="findAllTrainRows" resultType="int">
+ 		SELECT COUNT(trainId) FROM train 
+ 	</select>
+ 	
+ 	<delete id="delTrainById">
+ 		DELETE FROM train WHERE trainId=#{trainId}
+ 	</delete>
+ 	
+ 	<!-- 可以为空的字段后面必须加上jdbcType，保险的话都加 -->
+ 	<insert id="addTrain" parameterType="com.person.entity.Train">
+ 		INSERT INTO train
+ 		(tname,startDate,endDate,number,teacher,descr)
+ 		VALUES 
+ 		(#{tname}, #{startDate}, #{endDate}, #{number}, #{teacher}, #{descr,jdbcType=VARCHAR})
+ 	</insert>
+ 	
+ 	<update id="modifyTrain" parameterType="com.person.entity.Train">
+ 		UPDATE train 
+ 		SET tname=#{tname},
+ 			startDate=#{startDate},
+ 			endDate=#{endDate},
+ 			number=#{number},
+ 			teacher=#{teacher},
+			descr=#{descr,jdbcType=VARCHAR}
+ 		WHERE trainId=#{trainId}
+ 	</update>
+ 	
+</mapper>
+

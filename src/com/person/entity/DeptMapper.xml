@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.DeptDao">
+	
+ 	<select id="findAllDept" parameterType="com.person.entity.page.DeptPage" resultType="com.person.entity.Dept">
+		SELECT d.*, e.name name, (SELECT COUNT(empId) FROM emp WHERE deptId=d.deptId) empSum 
+		FROM dept d
+		LEFT JOIN emp e
+		ON d.deptBossId = e.empId 
+		LIMIT #{begin},#{size}
+ 	</select>
+ 	
+ 	<select id="findAllDeptForShow" resultType="com.person.entity.Dept">
+		SELECT deptId, deptName FROM dept
+ 	</select>
+ 	
+ 	<select id="findDeptById" parameterType="int" resultType="com.person.entity.Dept">
+ 		SELECT dept.* FROM dept WHERE deptId=#{deptId}
+ 	</select>
+ 	
+ 	<select id="findAllDeptRows" resultType="int">
+		SELECT COUNT(*) FROM dept 	
+ 	</select>
+ 	
+ 	
+ 	
+ 	<delete id="delDeptById" parameterType="int">
+ 		DELETE FROM dept WHERE deptId=#{deptId}
+ 	</delete>
+ 	
+ 	<insert id="addDept" parameterType="com.person.entity.Dept">
+ 		INSERT INTO dept(deptName, deptAddress)
+ 		VALUES(#{deptName},#{deptAddress})
+ 	</insert>
+ 	
+ 	<update id="modifyDept" parameterType="com.person.entity.Dept">
+ 		UPDATE dept SET deptName=#{deptName}, deptAddress=#{deptAddress} 
+ 		WHERE deptId=#{deptId}
+ 	</update>
+ 	
+ 	<update id="setDeptBoss" parameterType="hashmap">
+ 		UPDATE dept SET deptBossId=#{empId} 
+ 		WHERE deptId=#{deptId}
+ 	</update>
+ 	
+</mapper>
+

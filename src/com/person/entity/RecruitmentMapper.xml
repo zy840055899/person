@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.RecruitmentDao">
+	
+ 	<select id="findAllRec" parameterType="com.person.entity.page.RecruitmentPage" resultType="com.person.entity.Recruitment">
+ 		SELECT * FROM recruitment 
+ 		LIMIT #{begin},#{size}
+ 	</select>
+ 	
+ 	<select id="findRecById" parameterType="int" resultType="com.person.entity.Recruitment" >
+ 		SELECT * FROM recruitment WHERE recId=#{recId}
+ 	</select>
+ 	
+ 	<select id="findAllRecRows" resultType="int">
+ 		SELECT COUNT(*) FROM recruitment
+ 	</select>
+ 	
+ 	<delete id="delRecById" parameterType="int">
+ 		DELETE FROM recruitment WHERE recId=#{recId}
+ 	</delete>
+ 	
+ 	<insert id="addRec" parameterType="com.person.entity.Recruitment">
+ 		INSERT INTO recruitment
+ 		(job,content,number,lowestEdu,sal,issueDate,email,status)
+ 		VALUES 
+ 		(#{job}, #{content}, #{number}, #{lowestEdu}, #{sal}, 
+ 		 #{issueDate,jdbcType=TIMESTAMP}, #{email}, #{status})
+ 	</insert>
+ 	
+ 	<update id="modifyRec" parameterType="com.person.entity.Recruitment">
+ 		UPDATE recruitment 
+ 		SET job=#{job},
+ 			content=#{content},
+ 			number=#{number},
+ 			lowestEdu=#{lowestEdu},
+ 			sal=#{sal},
+ 			issueDate=#{issueDate,jdbcType=TIMESTAMP},
+			email=#{email}
+ 		WHERE recId=#{recId}
+ 	</update>
+ 	
+ 	<update id="changeStatus" parameterType="hashmap">
+		UPDATE recruitment 
+		<if test="status==0">
+			SET status="1"
+		</if>
+		<if test="status==1">
+			SET status="0"
+		</if>
+		WHERE recId=#{id}	
+ 	</update>
+ 	
+ 	
+</mapper>
+

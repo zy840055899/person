@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.EmpDao">
+	
+	<!-- 结果类型必须是查询所得的每一条数据的类型，而不是全部'%'||#{name}||'%' -->
+ 	<select id="findAllEmp" parameterType="com.person.entity.page.EmpPage" resultType="com.person.entity.Emp">
+ 		SELECT e.*,	d.deptName 
+ 		FROM emp e, dept d 
+ 		WHERE e.deptId = d.deptId
+		<if test="name!=null &amp;&amp; name.length()>0">
+			and name like '%${name}%'
+		</if>
+		<if test="dept!=null &amp;&amp; dept.length()>0">
+			and d.deptName like '%${dept}%'
+		</if>
+		<if test="gender!=null &amp;&amp; gender.length()>0">
+			and gender=#{gender}
+		</if>
+ 		LIMIT #{begin},#{size}
+ 	</select>
+ 	<select id="findAllEmpRows" resultType="int">
+ 		SELECT COUNT(*) 
+ 		FROM emp e, dept d 
+ 		WHERE e.deptId = d.deptId
+ 	</select>
+ 	
+ 	
+ 	<select id="findEmpById" parameterType="int" resultType="com.person.entity.Emp">
+ 		SELECT e.*,	d.deptName 
+ 		FROM emp e, dept d 
+ 		WHERE e.deptId = d.deptId AND e.empId=#{empId}
+ 	</select>
+ 	
+ 	<select id="findEmpByUsername" parameterType="string" resultType="com.person.entity.Emp">
+ 		SELECT empId, password, roleType
+ 		FROM emp 
+ 		WHERE mobile=#{mobile}
+ 	</select>
+ 	
+ 	<!-- 查询所有员工的id姓名工资等级（发工资用到） -->
+ 	<select id="qryAllEmpForSal" resultType="com.person.entity.Emp">
+ 		SELECT empId, name, salGrade FROM emp
+ 	</select>
+ 	
+ 	<delete id="delEmpById" parameterType="int">
+ 		DELETE FROM emp 
+ 		WHERE empId = #{empId}
+ 	</delete>
+ 	
+ 	<update id="modifyEmp" parameterType="com.person.entity.Emp">
+ 		UPDATE emp 
+ 		SET name=#{name},
+ 			deptId=#{deptId},
+ 			title=#{title},
+ 			mobile=#{mobile},
+ 			email=#{email},
+ 			education=#{education},
+ 			roleType=#{roleType},
+			address=#{address,jdbcType=VARCHAR},
+			marry=#{marry,jdbcType=VARCHAR},
+			workPhone=#{workPhone,jdbcType=VARCHAR}
+ 		WHERE empId=#{empId}
+ 	</update>
+ 	
+ 	<update id="modifyUserInfo" parameterType="com.person.entity.Emp">
+ 		UPDATE emp 
+ 		SET	username=#{mobile},
+ 			mobile=#{mobile},
+ 			email=#{email},
+ 			education=#{education},
+			address=#{address,jdbcType=VARCHAR},
+			marry=#{marry,jdbcType=VARCHAR},
+			workPhone=#{workPhone,jdbcType=VARCHAR}
+ 		WHERE empId=#{empId}
+ 	</update>
+ 	
+ 	<update id="modifyPwd" parameterType="com.person.entity.Emp">
+ 		UPDATE emp 
+ 		SET password=#{password}
+ 		WHERE empId=#{empId}
+ 	</update>
+ 	
+ 	<insert id="addEmp" parameterType="com.person.entity.Emp">
+ 		<!-- 手动生成ID，并将ID值注入给实体对象★ -->
+ 		<selectKey keyProperty="empId" resultType="int" order="BEFORE">
+			SELECT MAX(empId)+1 empId FROM emp
+		</selectKey>
+ 	
+ 		INSERT INTO emp
+ 		(empId, name,username,password,gender,nativee,birthday,
+ 		deptId,title,workPhone,mobile,email,education,marry,
+ 		identityId,address,enterDate,roleType,salGrade) 
+ 		VALUES 
+ 		(#{empId}, #{name}, #{username}, #{password}, #{gender}, #{nativee}, #{birthday},
+ 		 #{deptId}, #{title}, 
+ 		 #{workPhone,jdbcType=VARCHAR}, #{mobile}, #{email}, #{education},#{marry},
+ 		 #{identityId}, #{address,jdbcType=VARCHAR}, #{enterDate},#{roleType},#{salGrade})
+ 	</insert>
+ 	
+</mapper>
+

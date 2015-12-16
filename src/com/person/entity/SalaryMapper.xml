@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.SalaryDao">
+	<!-- 查询某月发放薪资的记录（某月是否发放过薪资） -->
+	<select id="qryIfExistSal" parameterType="string" resultType="int">
+		SELECT COUNT(salId) 
+		FROM salary 
+		WHERE monthFor=#{dateStr}
+	</select>
+	
+	<select id="findPersonalSalInfo" parameterType="int" resultType="com.person.entity.Salary">
+		SELECT * FROM salary 
+		WHERE empId=#{empId}
+	</select>
+	
+	<select id="findAllSalInfo" resultType="com.person.entity.Salary">
+		SELECT s.*, e.name name 
+		FROM salary s, emp e
+		WHERE s.empId=e.empId	
+	</select>
+	
+	<insert id="addSalaryForEmp" parameterType="com.person.entity.Salary">
+		INSERT INTO salary(empId, monthFor, basicSal, extraSal, travelSal, forfeit) 
+		VALUES(#{empId}, #{monthFor}, #{basicSal}, #{extraSal}, #{travelSal}, #{forfeit})	
+	</insert>
+	
+	
+	
+	
+	
+</mapper>

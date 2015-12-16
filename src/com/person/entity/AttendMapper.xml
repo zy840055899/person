@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.AttendDao">
+
+	<!-- 查询员工某天的考勤次数 -->
+	<select id="queryIfAttend" parameterType="hashmap" resultType="int">
+		SELECT COUNT(attendId) FROM attend 
+		WHERE dutyDate=#{dutyDate} AND empId=#{empId}
+	</select>
+	
+	<!-- 查询个人所有考勤信息 -->
+	<select id="findAllPersonalAttends" parameterType="int" resultType="com.person.entity.Attend">
+		SELECT * FROM attend 
+		WHERE empId=#{empId} 
+		ORDER BY dutyDate DESC
+	</select>
+	
+	<!-- 查询所有员工考勤信息 -->
+	<select id="findAllAttends" resultType="com.person.entity.Attend">
+		SELECT a.*,e.name FROM attend a
+		JOIN emp e
+		ON a.empId=e.empId 
+		ORDER BY dutyDate DESC
+	</select>
+	
+	<!-- 按员工号查询某员工某月已经被批准的汇总考勤信息（薪资核算） -->
+	<select id="findAttendMonth" parameterType="hashmap" resultType="com.person.entity.AttendMonth">
+		SELECT SUM(workTime) sumWorkTime,SUM(extraTime) sumExtraTime,SUM(isTravel) sumTravel,groupDate,empId
+		FROM attend 
+		WHERE empId=#{empId} AND isApproved=1 AND groupDate=#{groupDate}
+		GROUP BY groupDate
+	</select>
+	
+	<!-- 添加考勤信息 -->
+	<insert id="addAttend" parameterType="com.person.entity.Attend">
+		INSERT INTO attend
+ 		(empId,dutyDate,isTravel,workTime,extraTime,remark,isApproved,groupDate)
+ 		VALUES 
+ 		(#{empId}, #{dutyDate}, #{isTravel}, #{workTime}, #{extraTime}, 
+ 		 #{remark,jdbcType=VARCHAR},#{isApproved},#{groupDate})
+	</insert>
+	
+	<!-- 考勤信息通过 -->
+	<update id="checkAttend" parameterType="hashmap">
+		UPDATE attend SET isApproved=#{status} 
+ 		WHERE attendId=#{attendId}
+	</update>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

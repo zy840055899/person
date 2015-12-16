@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 设置延迟初始化，用到哪个初始化哪个 -->
+<beans default-lazy-init="true" 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" 
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+			http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+			http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+			http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+			http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.3.xsd">	
+	
+	<!-- 注解版本的 MVC配置 -->
+	<context:component-scan base-package="com.person"/>
+<!-- 	<mvc:annotation-driven /> -->
+	
+	<mvc:annotation-driven content-negotiation-manager="contentNegotiationManager" />   
+    <bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">   
+        <property name="favorPathExtension" value="false" />  
+        <property name="favorParameter" value="false" />   
+        <property name="ignoreAcceptHeader" value="false" />   
+        <property name="mediaTypes">   
+            <value>  
+                atom=application/atom+xml  
+                html=text/html  
+                json=application/json  
+                *=*/*  
+            </value>   
+        </property>  
+    </bean>  
+	
+	<!-- 视图处理器 -->
+	<bean id="view" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<!-- 配置数据源(不同公司设计的数据源的name都是不一样的，注意) -->
+	<util:properties id="jdbc" location="classpath:database.properties" />
+	<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="#{jdbc.driver}" />
+		<property name="url" value="#{jdbc.url}" />
+		<property name="username" value="#{jdbc.user}" />
+		<property name="password" value="#{jdbc.pwd}" />
+		<property name="maxActive" value="#{jdbc.maxPoolSize}" />
+		<property name="minIdle" value="#{jdbc.minPoolSize}" />
+	</bean>
+	
+	<!-- 配置sqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource" />
+		<!-- 扫描的所有映射文件 -->
+		<property name="mapperLocations" value="classpath:com/person/entity/*.xml" />
+	</bean>
+	
+	<!-- 配置MyBatis注解 -->
+	<!-- Spring会根据这个配置自动扫描带有该注解的接口，自动创建该接口的实现类，
+	并使用对应的xml文件中的sql来实现对应的方法，如果不用的话就是用mapper全扫描的方式 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 下面这一行加不加无所谓 -->
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+		<property name="basePackage" value="com.person.dao"/>
+		<property name="annotationClass" value="com.person.annotation.MyRepository"/>
+	</bean>
+	
+	<!-- 上传文件必须配置的bean -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 限制上传文件大小为100KB -->
+		<property name="maxUploadSize" value="102400"></property>	
+	</bean>
+	
+	<!-- 注册拦截器 -->
+	<mvc:interceptors>
+		<!-- 登录检查拦截器 -->
+		<mvc:interceptor>
+			<!-- 第一个*代表Controller类的访问路径； 第二个*代表Controller方法的访问路径； 即所有的方法都要受此拦截器检查。 -->
+			<mvc:mapping path="/**" />
+			<!-- 以下三个方法不受检查。 -->
+			<mvc:exclude-mapping path="/login/toLogin.do" />
+			<mvc:exclude-mapping path="/login/checkLogin.do" />
+			<mvc:exclude-mapping path="/login/createImage.do" />
+			<bean class="com.person.interceptor.CheckLoginInterceptor" />
+		</mvc:interceptor>
+		
+		<!-- 角色管理拦截器 -->
+		<mvc:interceptor>
+			<mvc:mapping path="/role/*" />
+			<mvc:exclude-mapping path="/role/findAllRole.do" />
+			<bean class="com.person.interceptor.RoleInterceptor" />
+		</mvc:interceptor>
+		
+<!-- 		<mvc:interceptor> -->
+<!-- 			<mvc:mapping path="/emp/*" /> -->
+<!-- 			<mvc:exclude-mapping path="/emp/findAllEmp.do" /> -->
+<!-- 			<bean class="com.person.interceptor.EmpInterceptor" /> -->
+<!-- 		</mvc:interceptor> -->
+		
+<!-- 		<mvc:interceptor> -->
+<!-- 			<mvc:mapping path="/dept/*" /> -->
+<!-- 			<mvc:exclude-mapping path="/dept/findAllDept.do" /> -->
+<!-- 			<bean class="com.person.interceptor.DeptInterceptor" /> -->
+<!-- 		</mvc:interceptor> -->
+		
+<!-- 		<mvc:interceptor> -->
+<!-- 			<mvc:mapping path="/train/*" /> -->
+<!-- 			<mvc:exclude-mapping path="/dept/findAllTrain.do" /> -->
+<!-- 			<bean class="com.person.interceptor.TrainInterceptor" /> -->
+<!-- 		</mvc:interceptor> -->
+
+<!-- 		<mvc:interceptor> -->
+<!-- 			<mvc:mapping path="/recruit/*" /> -->
+<!-- 			<mvc:exclude-mapping path="/dept/findAllRec.do" /> -->
+<!-- 			<bean class="com.person.interceptor.RecruitmrntInterceptor" /> -->
+<!-- 		</mvc:interceptor> -->
+		
+	</mvc:interceptors>
+	
+</beans>

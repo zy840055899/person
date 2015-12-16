@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"      
+ "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.person.dao.RoleDao">
+
+	<select id="findAllRolesForShow" resultType="com.person.entity.Role">
+		SELECT roleId, roleName FROM role_info
+	</select>
+
+	<select id="findRoleById" resultMap="roleMap" parameterType="int">
+		SELECT * FROM role_info WHERE roleId=#{roleId}
+	</select>
+	<!-- 一对多查询：一个角色拥有多个权限 -->
+	<!-- 根据ID单独查出角色 -->
+	<select id="findAllRoles" resultMap="roleMap" parameterType="com.person.entity.page.RolePage">
+		SELECT * FROM role_info 
+		LIMIT #{begin},#{size}
+	</select>
+	<!-- 根据ID单独查出所拥有的权限 -->
+	<select id="findAllModules" parameterType="int" resultType="com.person.entity.Module">
+		SELECT m.moduleId, m.moduleName 
+		FROM module_info m, role_module r 
+		WHERE m.moduleId=r.moduleId 
+		AND r.roleId=#{roleId}
+	</select>
+	<!-- 将根据ID查出的权限列表拼装到ID对应的角色对象中 -->
+	<resultMap type="com.person.entity.Role" id="roleMap">
+ 		<id property="roleId" column="roleId" />
+ 		<!-- 根据roleId查询出所有权限（modules），类型为arraylist -->
+ 		<!-- 通过findAllModules查到的，list中每一个对象为Module -->
+ 		<collection 
+ 			column="roleId"        
+ 			property="modules" 
+ 			javaType="arraylist" 
+ 			select="findAllModules" 
+ 			ofType="com.person.entity.Module">
+ 		</collection>
+ 	</resultMap>
+	
+	<select id="findCountOfRole" parameterType="int" resultType="int">
+		SELECT COUNT(empId) FROM emp WHERE roleType=#{roleId}
+	</select>
+	
+	<select id="findRoleByName" parameterType="string" resultType="com.person.entity.Role">
+		SELECT * FROM role_info WHERE roleName=#{roleName}
+	</select>
+	
+	<select id="findModules" resultType="com.person.entity.Module">
+		SELECT * FROM module_info	
+	</select>
+	
+	<select id="findAllRoleRows" resultType="int">
+ 		SELECT COUNT(roleId) FROM role_info  
+ 	</select>
+	
+	<delete id="deleteRoleById" parameterType="int">
+		DELETE FROM role_info WHERE roleId=#{roleId}
+	</delete>
+	
+	<update id="modifyRole" parameterType="com.person.entity.Role">
+		UPDATE role_info SET roleName=#{roleName} WHERE roleId=#{roleId}
+	</update>
+	
+	<delete id="deleteRoleModule" parameterType="int">
+		DELETE FROM role_module WHERE roleId=#{roleId}	
+	</delete>
+	
+	<insert id="addRoleModule" parameterType="com.person.entity.RoleModule">
+		INSERT INTO role_module(roleId,moduleId) 
+ 		VALUES(#{roleId}, #{moduleId})
+	</insert>
+	
+	<insert id="addRole" parameterType="com.person.entity.Role">
+		<!-- 手动生成ID，并将ID值注入给实体对象★ -->
+		<selectKey keyProperty="roleId" resultType="int" order="BEFORE">
+			SELECT MAX(roleId)+1 roleId FROM role_info
+		</selectKey>
+		<!-- 这时候就也要手动插入id了 -->
+		INSERT INTO role_info(roleId, roleName) VALUES(#{roleId}, #{roleName})	
+	</insert>
+	
+</mapper>
+
+
